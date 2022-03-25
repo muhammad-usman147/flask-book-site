@@ -1,7 +1,7 @@
 import pymysql 
 
 class Database():
-    def __init__(self,dbname,host = 'localhost',user = 'root', pwd = ''):
+    def __init__(self,dbname,host = '127.0.0.1',user = 'root', pwd = ''):
         self.conn =  pymysql.connect(host =host, user = user, password = pwd)
         self.dbname = dbname
 
@@ -14,9 +14,6 @@ class Database():
         print(f"RUNNING: {querystring}")
         self.conn.cursor().execute(querystring)
         print(f"Table Created  Successfully")
-
-        
-
     
 
     
