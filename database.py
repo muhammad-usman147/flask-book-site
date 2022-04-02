@@ -1,3 +1,4 @@
+from msilib.schema import Error
 import pymysql 
 
 class Database():
@@ -14,6 +15,29 @@ class Database():
         print(f"RUNNING: {querystring}")
         self.conn.cursor().execute(querystring)
         print(f"Table Created  Successfully")
-    
+    def SelectQuery(self,querystring,param,mode = 'fetchone'):
+        print(querystring)
+        cur =  self.conn.cursor()
+        cur.execute(querystring,param)
+        if mode == 'fetchone':
+            return cur.fetchone()
+        elif mode == 'fetchall':
+            return cur.fetchall()
+        else:
+            return "Error"
 
     
+    def InsertQuery(self,querystring,param):
+        self.conn.cursor().execute(querystring,param)
+        self.conn.commit()
+        print("Insert query executed")
+
+    def UpdateQuery(self,querystring,param):
+        self.conn.cursor().execute(querystring,param)
+        self.conn.commit()
+        print('Update query executed')
+
+    def DeleteFromRow(self,querystring,param):
+        self.conn.cursor().execute(querystring,param)
+        self.conn.commit()
+        print("Row Deleted  Successfully")
