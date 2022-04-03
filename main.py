@@ -30,9 +30,23 @@ def homepage():
     return render_template("login.html")
 
 
+@app.route('/adminlogin',methods = ['post'])
+def AdminLogin():
+    username = request.form.get('username')
+    password = request.form.get('password')
+    print("-"*10)
+    print(username,password)
+    data = db.SelectQuery('SELECT *  FROM booksite.admin WHERE Username = %s AND Password = %s;',param = (username,password))
+    if data is None:
+        return render_template("adminlogin.html",data = "Check your username or password OR something went wrong")
+    elif data is not None:
+        return render_template("adminpanel.html",name = username)
+        #return AdminLogin()
+
+
 @app.route('/loadadmin',methods=['GET'])
 def loadadmin():
-    return render_template('adminpanel.html')
+    return render_template('adminlogin.html')
 
 
 #admin panel
@@ -76,7 +90,7 @@ def AddBook():
         bookdate = request.form.get('date')
         bookdescription = request.form.get('desc')
         #----------------
-        dir = 'templates/covers/'
+        dir = 'covers/'
         f = request.files.get('cover').read()
         img = np.fromstring(f, np.uint8)
         img = cv2.imdecode(img, cv2.IMREAD_COLOR)
@@ -166,9 +180,9 @@ def DeleteCart():
     return jsonify({"msg":"Removed Successfully"})
 
 
-@app.route("/checkout",methods = ['POST'])
+@app.route("/checkout",methods = ['GET'])
 def Checkout():
-    username = request.form.get('username')
+    username = request.args.get('username')
  
     isbn = []
     quantities = []
@@ -190,10 +204,10 @@ def Checkout():
             i = int(int(q_r) - int(q_c))
             db.UpdateQuery("UPDATE booksite.stocks SET BookQuantity = %s where ISBN = %s",param = (i,isbn))
             db.DeleteFromRow("DELETE FROM booksite.cart where isbn = %s",param=(isbn))
-            return jsonify({"msg":f"Success"})
+            return render_template('paymentmethod.html')
     #update quantity
     #db.UpdateQuery('UPDATE')
-    return jsonify({'msg':f'{isbn}'})
+    return display(username)
 
 
 if __name__ == '__main__':
