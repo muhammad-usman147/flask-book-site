@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {{ data }}
+    <h1>Welcome to Admin panel</h1>
+    <h2>Add a book</h2>
+
+    <form action="{{ url_for('AddBook') }}"  method="post" enctype="multipart/form-data">
+
+        <input type="text" name="bookname" placeholder="bookname" id=""> <br>
+        <input type="text" name="author" placeholder="author" id=""> <br>
+        <input type="date" name="date" placeholder="date" id=""> <br>
+        <textarea name="desc" placeholder='Book Description' id="" cols="30" rows="10"></textarea>
+
+        
+        <input type="text" name="isbn" placeholder="ISBN-13" id=""> <br>
+        <input type="file" name="cover" placeholder="upload cover photo" id=""> <br>
+        
+        <input type="range" name="tradeprice" min="1" max="100" onclick="updateTextInput(this.value);"  id="traderange" /> <input type="text" id="tradeid" value=""><br>
+        <input type="range" name="retailprice" min="1" max="100" onclick="retailupdate(this.value);" placeholder="retailprice" id="retailrange" /><input type="text" id="retailid" value=""><br>
+        <input type="range" name="quantity" min="1" max="100" onclick="quantityupdate(this.value);" placeholder="quantity" id="quantityrange" /><input type="text" id="quantityid" value=""><br>
+        <br>
+        <input type="submit" value="Save Book">
+    </form>
+
+
+</body>
+</html>
+<script>
+    function updateTextInput(val) {
+          document.getElementById('tradeid').value=val; 
+        }
+    function retailupdate(val) {
+          document.getElementById('retailid').value=val; 
+        }
+    function quantityupdate(val) {
+          document.getElementById('quantityid').value=val; 
+        }
+
+    
+</script>

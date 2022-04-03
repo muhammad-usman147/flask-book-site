@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pymysql
 import cv2
 import numpy as np
@@ -10,7 +10,7 @@ db = Database(dbname='booksite')
 #db.createTable("CREATE  TABLE booksite.stocks (ISBN int primary key, BookName TEXT, BookAuther TEXT, BookDate TEXT, BookDescription TEXT, BoookCover TEXT, BookTradePrice TEXT, BookRetailPrice TEXT, BookQuantity TEXT);")
 # db.createTable("CREATE  TABLE booksite.users (ID int primary key, Username TEXT,Password TEXT, FullName Text, Address TEXT);")
 # db.createTable("CREATE TABLE booksite.cart (ID int primary key, username TEXT, isbn TEXT, quantity TEXT);")
-
+# db.createTable("CREATE TABLE booksite.admin (ID int primary key AUTO_INCREMENT, username TEXT, password TEXT, name TEXT);")
 '''
 1. The name of the book.
 2. The author of the book.
@@ -25,16 +25,29 @@ db = Database(dbname='booksite')
 app  = Flask(__name__)
 
 
+@app.route('/')
+def homepage():
+    return render_template("login.html")
+
+
+@app.route('/loadadmin',methods=['GET'])
+def loadadmin():
+    return render_template('adminpanel.html')
+
+
 #admin panel
-@app.route('/users-login',methods = ['POST'])
+@app.route('/userslogin',methods = ['POST'])
 def userslogin():
     username = request.form.get('username')
     password = request.form.get('password')
+    print("-"*10)
+    print(username,password)
     data = db.SelectQuery('SELECT *  FROM booksite.users WHERE Username = %s AND Password = %s;',param = (username,password))
     if data is None:
-        return jsonify({'msg':"Check your username or password OR something went wrong"})
+        return render_template("login.html",data = "Check your username or password OR something went wrong")
     elif data is not None:
-        return jsonify({"msg":f"{data}"})
+        return render_template("booksite.html",name = username)
+
 
 
 @app.route('/users-signup',methods=['POST'])
@@ -42,51 +55,56 @@ def userssignup():
     
     username = request.form.get('username')
     password = request.form.get('password')
+    
     id = request.form.get('id')
     fullname = request.form.get('fullname')
     address = request.form.get('address')
     db.InsertQuery("Insert into booksite.users(id,Username, Password, Fullname, Address) values (%s, %s, %s, %s, %s)",param = (id,username, password, fullname, address))
     return jsonify({"msg":"Signup Successfull"})
 #add and update stocks:: Feature 1
-@app.route("/add-stocks",methods= ['POST'])
+@app.route("/addstocks",methods= ['GET', 'POST'])
 def AddBook():
+    print(request.method)
+    if request.method == 'POST':
+        isbn = request.form.get('isbn')
+        check_isbn = db.SelectQuery('SELECT * FROM booksite.stocks WHERE ISBN = %s;',param = (isbn),mode = 'fetchone')
+        print('---'*10)
+        print(isbn)
+        bookname = request.form.get('bookname')
+        author = request.form.get('author')
+        bookdate = request.form.get('date')
+        bookdescription = request.form.get('desc')
+        #----------------
+        dir = 'covers/'
+        f = request.files.get('cover').read()
+        img = np.fromstring(f, np.uint8)
+        img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+        cv2.imwrite(dir+f"{isbn}_COVER.jpg",img)
+        #---------------
+        booktradeprice = request.form.get('tradeprice')
+        bookretailprice = request.form.get('retailprice')
+        bookquantity = int(request.form.get('quantity'))
 
-    isbn = int(request.form.get('isbn'))
-    check_isbn = db.SelectQuery('SELECT * FROM booksite.stocks WHERE ISBN = %s;',param = (isbn),mode = 'fetchone')
-    print('---'*10)
-    print(check_isbn)
-    bookname = request.form.get('bookname')
-    author = request.form.get('author')
-    bookdate = request.form.get('date')
-    bookdescription = request.form.get('desc')
-    #----------------
-    dir = 'covers/'
-    f = request.files.get('cover').read()
-    img = np.fromstring(f, np.uint8)
-    img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-    cv2.imwrite(dir+f"{isbn}_COVER.jpg",img)
-    #---------------
-    booktradeprice = request.form.get('tradeprice')
-    bookretailprice = request.form.get('retailprice')
-    bookquantity = int(request.form.get('quantity'))
+        if check_isbn is not None:
 
-    if check_isbn is not None:
+            db.UpdateQuery('''Update booksite.stocks SET BookName = %s, BookAuther = %s,
+                                                                    BookDate = %s, BookDescription = %s, BoookCover = %s,
+                                                                    BookTradePrice = %s, BookRetailPrice = %s, BookQuantity = %s 
+                                                                    WHERE ISBN = %s;
+                                                                    ''' ,param = (bookname, author, bookdate, bookdescription, 
+                                                                    dir+f'{isbn}_COVER.jpg', booktradeprice, bookretailprice, bookquantity,isbn))
+        elif check_isbn is None:
+            db.InsertQuery('''INSERT INTO booksite.stocks (ISBN, BookName, BookAuther,
+                                                                    BookDate, BookDescription, BoookCover,
+                                                                    BookTradePrice, BookRetailPrice, BookQuantity) 
+                                                                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                                                                    
+                                                                    ''' ,param = (isbn, bookname, author, bookdate, bookdescription, 
+                                                                    dir+f'{isbn}_COVER.jpg', booktradeprice, bookretailprice, bookquantity))
+        return render_template('adminpanel.html',data = 'Stocks added')
+    elif request.method == 'GET':
+        return render_template('adminpanel.html',data = 'Stocks added')
 
-        db.UpdateQuery('''Update booksite.stocks SET BookName = %s, BookAuther = %s,
-                                                                  BookDate = %s, BookDescription = %s, BoookCover = %s,
-                                                                  BookTradePrice = %s, BookRetailPrice = %s, BookQuantity = %s 
-                                                                  WHERE ISBN = %s;
-                                                                  ''' ,param = (bookname, author, bookdate, bookdescription, 
-                                                                  dir+f'{isbn}_COVER.jpg', booktradeprice, bookretailprice, bookquantity,isbn))
-    elif check_isbn is None:
-        db.InsertQuery('''INSERT INTO booksite.stocks (ISBN, BookName, BookAuther,
-                                                                  BookDate, BookDescription, BoookCover,
-                                                                  BookTradePrice, BookRetailPrice, BookQuantity) 
-                                                                  values (%s, %s, %s, %s, %s, %s, %s, %s, %s);
-                                                                 
-                                                                  ''' ,param = (isbn, bookname, author, bookdate, bookdescription, 
-                                                                  dir+f'{isbn}_COVER.jpg', booktradeprice, bookretailprice, bookquantity))
-    return jsonify({"msg":True})
 
 
 
@@ -94,7 +112,7 @@ def AddBook():
 @app.route('/display-stocks-all/',methods = ['GET'])
 def display():
     check_isbn = db.SelectQuery('SELECT * FROM booksite.stocks',mode = 'fetchall',param=None)
-    return jsonify({'msg':f'{check_isbn}'})
+    return render_template('displaystocks.html',data = check_isbn)
 
 
 #add to card :: Feature 3
