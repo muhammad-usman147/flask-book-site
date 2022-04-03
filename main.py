@@ -46,7 +46,8 @@ def userslogin():
     if data is None:
         return render_template("login.html",data = "Check your username or password OR something went wrong")
     elif data is not None:
-        return render_template("booksite.html",name = username)
+        #return render_template("booksite.html",name = username)
+        return display(username)
 
 
 
@@ -110,9 +111,10 @@ def AddBook():
 
 #display stocks:: Feature 2
 @app.route('/display-stocks-all/',methods = ['GET'])
-def display():
+def display(username):
+    print(username)
     check_isbn = db.SelectQuery('SELECT * FROM booksite.stocks',mode = 'fetchall',param=None)
-    return render_template('displaystocks.html',data = check_isbn)
+    return render_template('booksite.html',data = check_isbn,username = username)
 
 
 #add to card :: Feature 3
@@ -120,7 +122,7 @@ def display():
 def AddToCart():
     #username, isbn, quantity
 
-    id = request.form.get('id')
+    
     username = request.form.get('username')
     isbn = request.form.get('isbn')
     quantity = request.form.get('quantity')

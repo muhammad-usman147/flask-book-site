@@ -9,5 +9,20 @@
 <body>
     <h1> Welcome {{name}} to booksite</h1>
 
+    <table>
+    {% for i in data %}
+    <tr>
+        <form action="{{ url_for('AddToCart') }}" method="post">
+        <td>{{ i[5] }}</td>
+        <td>{{ i[1] }}</td>
+        <td>{{ i[0] }}</td>
+        <td>{{ i[-1] }}</td>
+
+        </form>
+
+    </tr>
+    {% endfor %}
+</table>
+
 </body>
 </html>
