@@ -76,7 +76,7 @@ def AddBook():
         bookdate = request.form.get('date')
         bookdescription = request.form.get('desc')
         #----------------
-        dir = 'covers/'
+        dir = 'templates/covers/'
         f = request.files.get('cover').read()
         img = np.fromstring(f, np.uint8)
         img = cv2.imdecode(img, cv2.IMREAD_COLOR)
@@ -125,39 +125,44 @@ def AddToCart():
     
     username = request.form.get('username')
     isbn = request.form.get('isbn')
-    quantity = request.form.get('quantity')
+    quantity = '1'
 
     db.InsertQuery('INSERT INTO booksite.cart(username,isbn,quantity) values(%s, %s, %s);',param = (username, isbn,quantity))
 
-    return jsonify({'msg':'card updated'})
+    return display(username)
 
 @app.route('/display-cart/<username>',methods = ['GET'])
 def DisplayCart(username):
-    isbn = []
+    isbns = []
     cover = []
     price = []
     title = []
+    quantity = []
     data = db.SelectQuery('SELECT * FROM booksite.cart where username = %s',(username),mode='fetchall')
     for i in data:
-        isbn.append(i[2])
+        isbns.append(i[2])
+        quantity.append(i[-1])
     
-    for isbn in isbn:
+    for isbn in isbns:
         xdata = db.SelectQuery("SELECT * from booksite.stocks where ISBN = %s",param = (isbn),mode = 'fetchone')
         cover.append(xdata[5])
-        price.append(xdata[3])
+        price.append(xdata[-2])
         title.append(xdata[1])
+        
 
 
-    return jsonify({"msg":f"Success", 
-                    "item image":f"{cover}",
-                    "item price":f"{price}",
-                    "item name":f"{title}"
-                    })
+    
+  
+    #data = (cover,price,title)
+    data = []
+    for c,p,t,q,i in zip(cover,price,title,quantity,isbns):
+        data.append([c,p,t,i,q])
+    return render_template("displaycart.html",data = data,username = username)
 
-@app.route("/delete-cart",methods=['DELETE'])
+@app.route("/delete-cart/",methods=['GET'])
 def DeleteCart():
-    username = request.form.get("username")
-    db.DeleteFromRow('DELETE FROM booksite.cart where username = %s',param = (username))
+    isbn = request.args.get("isbn")
+    db.DeleteFromRow('DELETE FROM booksite.cart where isbn = %s',param = (isbn))
     return jsonify({"msg":"Removed Successfully"})
 
 

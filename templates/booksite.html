@@ -9,14 +9,20 @@
 <body>
     <h1> Welcome {{name}} to booksite</h1>
 
+
+    <a href="{{ url_for('DisplayCart',username=username) }}">View Cart</a>
+
     <table>
     {% for i in data %}
     <tr>
         <form action="{{ url_for('AddToCart') }}" method="post">
-        <td>{{ i[5] }}</td>
+       
+        <td><img src="{{ url_for('static', filename = i[5]) }}" alt="book image" height="100px" width="100px"></td>
         <td>{{ i[1] }}</td>
-        <td>{{ i[0] }}</td>
+        <td><input type="text" value="{{ i[0] }}" name="isbn"></td>
         <td>{{ i[-1] }}</td>
+        <td><input type="text" name="username" value="{{ username }}"></td>
+        <td><input type="submit" value="Add to Cart"></td>
 
         </form>
 
