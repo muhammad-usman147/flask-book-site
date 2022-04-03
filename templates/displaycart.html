@@ -25,7 +25,7 @@
     
         <td><img src="{{ url_for('static', filename = i[0]) }}" alt="book image" height="100px" width="100px"></td>
     <td> {{ i[1]|int }} </td>
-    <td> {{ i[2] }} </td>
+    <td> {{ i[2] }} pound</td>
     <td>{{ i[-1] }}</td>
     <td><a href="{{ url_for('DeleteCart',isbn=i[3]) }}" class="btn btn-danger"> Remove from cart</a></td>
     </tr>
